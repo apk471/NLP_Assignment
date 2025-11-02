@@ -1,10 +1,11 @@
-# DocuGenie
+# Natural Language Querying over PDF Documents Using a RAG-Based Conversational Agent
 
 ## Introduction
 
 In today's fast-paced world, efficient access to information is crucial for organizations. DocuGenie, our cutting-edge AI bot, is designed to revolutionize the way you handle and extract information from your local PDF files.
 
 ## Demo
+
 <a href="https://drive.google.com/file/d/1KI1r9M6jVKRDYc2VzmoZrpF2j3EcIpCJ/view?usp=sharing">Click here to watch a demo</a>
 
 ## Features
