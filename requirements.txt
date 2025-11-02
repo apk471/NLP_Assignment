@@ -1,0 +1,12 @@
+streamlit-mic-recorder
+sentence_transformers
+InstructorEmbedding
+langchain
+ctransformers
+transformers
+streamlit
+pypdfium2
+chromadb
+ollama
+pyyaml
+torch
