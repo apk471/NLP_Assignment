@@ -35,6 +35,18 @@ async def translate_to_english(text):
     except Exception as e:
         print(f"Error during translation: {e}")
         return text, "en"
+    
+async def translate_to_input_lang(text, target_lang):
+    try:
+        translator = Translator()
+        if target_lang != "en":
+            translated = await translator.translate(text, src="en", dest=target_lang)
+            return translated.text
+        else:
+            return text
+    except Exception as e:
+        print(f"Error during translation to input language: {e}")
+        return text
 
 # ---------------- Theme Handling ---------------- #
 def toggle_theme():
@@ -165,33 +177,71 @@ def main():
         llm_chain = load_chain(chat_history)
         llm_chain.run(voice_recording)
 
+    # if send_button or st.session_state.send_input:
+    #     if st.session_state.user_question != "":
+    #         # ------------- Translation ------------- #
+    #         translated_text, detected_lang = asyncio.run(translate_to_english(st.session_state.user_question))
+
+    #         if detected_lang != "en":
+    #             st.write(f"You have entered the question in **{detected_lang}**.")
+    #             st.write(f"Here is the translated version in English:")
+    #             st.write(f"**{translated_text}**")
+
+    #         print("Translated Text:", translated_text)
+    #         # print("Original Text:", st.session_state.user_question)
+    #         print("Detected Language:", detected_lang)
+
+            
+
+    #         # Use a temporary history so it doesn't auto-log twice
+    #         temp_history = StreamlitChatMessageHistory(key=str(uuid.uuid4()))
+    #         llm_chain = load_chain(temp_history)
+    #         llm_response = llm_chain.run(translated_text)
+
+    #         # Add only original + bot reply manually to main chat
+    #         chat_history.add_user_message(st.session_state.user_question)
+    #         chat_history.add_ai_message(llm_response)
+
+    #         st.session_state.user_question = ""
+    #         st.session_state.send_input = False
+
     if send_button or st.session_state.send_input:
         if st.session_state.user_question != "":
             # ------------- Translation ------------- #
             translated_text, detected_lang = asyncio.run(translate_to_english(st.session_state.user_question))
 
             if detected_lang != "en":
-                st.write(f"You have entered the question in **{detected_lang}**.")
-                st.write(f"Here is the translated version in English:")
-                st.write(f"**{translated_text}**")
+                st.write(f"You have entered the question in **{detected_lang.upper()}**.")
+                st.write(f"Translated to English: **{translated_text}**")
 
-            print("Translated Text:", translated_text)
-            # print("Original Text:", st.session_state.user_question)
-            print("Detected Language:", detected_lang)
-
-            
-
-            # Use a temporary history so it doesn't auto-log twice
+            # Use temporary chat history so it doesn’t double-log
             temp_history = StreamlitChatMessageHistory(key=str(uuid.uuid4()))
             llm_chain = load_chain(temp_history)
+
+            # Get response from LLM (always in English)
             llm_response = llm_chain.run(translated_text)
 
-            # Add only original + bot reply manually to main chat
-            chat_history.add_user_message(st.session_state.user_question)
-            chat_history.add_ai_message(llm_response)
+            # If question was not in English → translate the response to Hindi
+            if detected_lang != "en":
+                # translator = Translator()
+                try:
+                    # translated_response = translator.translate(llm_response, src="en", dest="hi").text
+                    translated_response = asyncio.run(translate_to_input_lang(llm_response, detected_lang))
+                except Exception as e:
+                    print("Error translating response:", e)
+                    translated_response = "[Translation failed]"
+
+                combined_response = f"**English:** {llm_response}\n\n**Hindi:** {translated_response}"
+                chat_history.add_user_message(st.session_state.user_question)
+                chat_history.add_ai_message(combined_response)
+
+            else:
+                chat_history.add_user_message(st.session_state.user_question)
+                chat_history.add_ai_message(llm_response)
 
             st.session_state.user_question = ""
             st.session_state.send_input = False
+
 
     # Display chat messages
     messages_list = []
